@@ -15,7 +15,7 @@ function init(dbPath) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS emails (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      message_id TEXT UNIQUE,
+      message_id TEXT NOT NULL,
       account TEXT NOT NULL,
       folder TEXT DEFAULT 'INBOX',
       uid INTEGER,
@@ -36,10 +36,10 @@ function init(dbPath) {
       source TEXT DEFAULT 'imap'
     );
 
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_emails_message_id_account ON emails(message_id, account);
     CREATE INDEX IF NOT EXISTS idx_emails_date ON emails(date DESC);
     CREATE INDEX IF NOT EXISTS idx_emails_account ON emails(account);
     CREATE INDEX IF NOT EXISTS idx_emails_from ON emails(from_address);
-    CREATE INDEX IF NOT EXISTS idx_emails_message_id ON emails(message_id);
   `);
 
   return db;
