@@ -132,19 +132,24 @@ class ImapWatcher {
           await new Promise((resolve, reject) => {
             const idleTimer = setTimeout(() => {
               console.log(`[${this.config.label}] Idle renew — reconnecting proactively`);
+              cleanup();
               resolve();
             }, IDLE_RENEW_MS);
 
-            this.client.on('close', () => { clearTimeout(idleTimer); resolve(); });
-            this.client.on('error', (err) => { clearTimeout(idleTimer); reject(err); });
-
             const check = setInterval(() => {
               if (!this.running) {
-                clearTimeout(idleTimer);
-                clearInterval(check);
+                cleanup();
                 resolve();
               }
             }, 1000);
+
+            function cleanup() {
+              clearTimeout(idleTimer);
+              clearInterval(check);
+            }
+
+            this.client.on('close', () => { cleanup(); resolve(); });
+            this.client.on('error', (err) => { cleanup(); reject(err); });
           });
         } finally {
           lock.release();
